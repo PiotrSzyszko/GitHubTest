@@ -14,9 +14,10 @@ import static io.restassured.RestAssured.given;
 @RunWith(Cucumber.class)
 public class StepDefinition {
 
-    private RequestSpecification requestSpecification;
-    private Response response;
-    private String userName;
+    private static RequestSpecification requestSpecification;
+    private static Response response;
+    private static String userName;
+    private static String sha;
 
     @Given("^User \"([^\"]*)\" logs in$")
     public void user_something_logs_in(String strArg1) throws Throwable {
@@ -63,8 +64,8 @@ public class StepDefinition {
                 .body("{\n" +
                         "  \"message\": \"" + strArg1 + "\",\n" +
                         "  \"author\": {\n" +
-                        "    \"name\": \"Mona Octocat\",\n" +
-                        "    \"email\": \"octocat@github.com\",\n" +
+                        "    \"name\": \"Piotr Szyszko\",\n" +
+                        "    \"email\": \"pszyszko@github.com\",\n" +
                         "    \"date\": \"2008-07-09T16:13:30+12:00\"\n" +
                         "  },\n" +
                         "  \"parents\": [\n" +
@@ -81,6 +82,32 @@ public class StepDefinition {
     public void commit_is_pushed_to_repository() throws Throwable {
         Assert.assertNotNull(response);
         Assert.assertEquals(201, response.statusCode());
+    }
+
+
+
+    public void user_creates_file_content(String strArg1, String strArg2, String strArg3) throws Throwable {
+        requestSpecification = given().log().all().baseUri("https://api.github.com/repos/" + userName + "/" + strArg2 + "/contents/" + strArg3)
+                .header("Authorization", "Basic cGlvdHIuc3p5c3prb0BnbWFpbC5jb206S3JlbWF0b3JpdW0jMDk=")
+                .header("Content-Type", "application/json")
+                .header("Cookie", "_octo=GH1.1.1887974940.1592602259; logged_in=no")
+                .body("{\n" +
+                        "  \"message\": \"" + strArg1 + "\",\n" +
+                        "  \"committer\": {\n" +
+                        "    \"name\": \"Piotr Szyszko\",\n" +
+                        "    \"email\": \"pszyszko@github.com\"\n" +
+                        "  },\n" +
+                        "  \"content\": \"bXkgbmV3IGZpbGUgY29udGVudHM=\"\n" +
+                        "}");
+
+        response = requestSpecification.when().put();
+    }
+
+
+    public void file_content_has_been_commited() throws Throwable {
+        Assert.assertNotNull(response);
+        Assert.assertEquals(201, response.statusCode());
+        sha = response.jsonPath().get("commit.sha").toString();
     }
 
 
